@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "204274097732",
+    "project_id": "fir-config-2b5d1",
+    "storage_bucket": "fir-config-2b5d1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204274097732:android:fbec0cd49f41099490a611",
+        "android_client_info": {
+          "package_name": "com.pushpendra001.Stock"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBq0LpM-ucP3ODBiHV0oAY__LB2f1y7czs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "405701384101",
+    "project_id": "stock-notification-4ae68",
+    "storage_bucket": "stock-notification-4ae68.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:405701384101:android:457471359d1cb8e2a7ba4c",
+        "android_client_info": {
+          "package_name": "com.pushpendra001.Stock"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCEqD6lyKNsx18dHAJ-0luu_wVoivAKZw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
