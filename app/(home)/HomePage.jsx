@@ -9,7 +9,7 @@ import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import IconSVG from '../../assets/svg';
 import {router} from 'expo-router'
 
-const Login_1 = () => {
+const HomePage = () => {
   return (
     <View style={styles.container}>
       <View style={styles.parent}>
@@ -90,7 +90,7 @@ router.replace("/(home)/Signup_1")
   );
 };
 
-export default Login_1; 
+export default HomePage; 
 
 const styles = StyleSheet.create({
   parent: {

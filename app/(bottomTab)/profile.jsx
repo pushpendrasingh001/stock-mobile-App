@@ -1,47 +1,74 @@
-// Carousel.js
-import React from 'react';
-import { View, Image, Text } from 'react-native';
-import Carousel from 'react-native-reanimated-carousel';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { useSelector } from "react-redux";
 
-const CarouselComponent = () => {
-  const data = [
-    { id: 1, image: 'https://picsum.photos/200/300', title: 'Slide 1' },
-    { id: 2, image: 'https://picsum.photos/200/301', title: 'Slide 2' },
-    { id: 3, image: 'https://picsum.photos/200/302', title: 'Slide 3' },
-    { id: 4, image: 'https://picsum.photos/200/303', title: 'Slide 4' },
-    { id: 5, image: 'https://picsum.photos/200/304', title: 'Slide 5' },
-  ];
+const Output = () => {
+  // Access the state from the Redux store
+  const { email, password, gender, name, sendNews, shareData } = useSelector(
+    (state) => state.signup
+  );
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Carousel
-        width={300}
-        height={200}
-        data={data}
-        renderItem={({ item }) => (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Image
-              source={{ uri: item.image }}
-              style={{ width: 200, height: 150, borderRadius: 10 }}
-            />
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginTop: 10 }}>
-              {item.title}
-            </Text>
-          </View>
-        )}
-        sliderWidth={300}
-        itemWidth={200}
-        inactiveSlideScale={0.8}
-        inactiveSlideOpacity={0.5}
-        activeSlideAlignment={'center'}
-        activeAnimationType={'spring'}
-        activeAnimationOptions={{
-          friction: 4,
-          tension: 40,
-        }}
-      />
+    <View style={styles.container}>
+      <Text style={styles.heading}>Profile Details</Text>
+      <Text style={styles.detail}>
+        <Text style={styles.label}>Name: </Text>
+        {name}
+      </Text>
+      <Text style={styles.detail}>
+        <Text style={styles.label}>Email: </Text>
+        {email}
+      </Text>
+      <Text style={styles.detail}>
+        <Text style={styles.label}>Password: </Text>
+        {password}
+      </Text>
+      <Text style={styles.detail}>
+        <Text style={styles.label}>Gender: </Text>
+        {gender}
+      </Text>
+      <Text style={styles.detail}>
+        <Text style={styles.label}>Share Data: </Text>
+        {shareData ? "Yes" : "No"}
+      </Text>
+      <Text style={styles.detail}>
+        <Text style={styles.label}>Receive Newsletters: </Text>
+        {sendNews ? "Yes" : "No"}
+      </Text>
     </View>
   );
 };
 
-export default CarouselComponent;
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    backgroundColor: "#f4f4f9",
+    borderRadius: 8,
+    maxWidth: 600,
+    marginTop: 20,
+    marginHorizontal: 20,
+    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)", // Not supported in React Native, use `elevation` for Android
+    elevation: 5, // Shadow for Android
+    borderWidth: 1, // Border for iOS
+    borderColor: "#ddd",
+  },
+  heading: {
+    fontSize: 24,
+    marginBottom: 15,
+    textAlign: "center",
+    color: "#4382EC",
+    fontWeight: "bold",
+  },
+  detail: {
+    fontSize: 18,
+    lineHeight: 24,
+    color: "#000",
+    marginVertical: 5,
+  },
+  label: {
+    fontWeight: "bold",
+    color: "#4382EC",
+  },
+});
+
+export default Output;

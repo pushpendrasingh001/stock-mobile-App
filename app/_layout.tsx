@@ -6,7 +6,9 @@ import { useState, useEffect, useRef } from 'react';
 import { Text, View, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+const queryClient = new QueryClient();
 // Notification handler
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -98,10 +100,14 @@ export default function RootLayout() {
   }
 
   return (
+    <QueryClientProvider client={queryClient}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <Provider store={store}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(home)" />
       </Stack>
     </Provider>
+    </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }
