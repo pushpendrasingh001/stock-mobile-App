@@ -7,21 +7,18 @@ import IconSVG from "../../assets/svg"; // Adjust the path to your SVG
 import { useRouter } from "expo-router";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { setPassword } from '../../features/signup/signupSlice';
+import { setMobileNumber } from '../../features/signup/signupSlice';
+
 const validationSchema = Yup.object().shape({
-  password: Yup.string()
-    .required("Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
-    .matches(/[0-9]/, "Password must contain at least one digit")
-    .matches(/[!@#$%^&*]/, "Password must contain at least one special character"),
+  mobileNumber: Yup.string()
+    .required("Mobile number is required")
+    .matches(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
 });
 
 const CreateAccount = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const password = useSelector((state) => state.signup.password);
+  const mobileNumber = useSelector((state) => state.signup.mobileNumber);
 
   return (
     <View style={styles.parentContainer}>
@@ -29,7 +26,7 @@ const CreateAccount = () => {
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {
-            router.push("/(home)/Signup_1");
+            router.push("/(home)/SignupEmail");
           }}
         >
           <IconSVG name="backbutton" width={32} height={32} style={styles.backButton} />
@@ -39,36 +36,36 @@ const CreateAccount = () => {
 
       {/* Formik Form */}
       <Formik
-        initialValues={{ password }}
+        initialValues={{ mobileNumber }}
         validationSchema={validationSchema}
         onSubmit={(values) => {
-          dispatch(setPassword(values.password)); 
+          dispatch(setMobileNumber(values.mobileNumber)); 
           console.log(values);
-          router.replace("/(home)/Signup_3");
+          router.replace("/(home)/SignupGender");
         }}
       >
         {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
           <View>
             {/* Input Section */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Create a password</Text>
+              <Text style={styles.label}>Enter your mobile number</Text>
               <TextInput
-                 style={[
+                style={[
                   styles.textInput,
-                  touched.password && errors.password ? styles.errorInput : null,
+                  touched.mobileNumber && errors.mobileNumber ? styles.errorInput : null,
                 ]}
-                placeholder="Enter your password"
+                placeholder="Enter your mobile number"
                 placeholderTextColor="#333"
-                secureTextEntry={true}
+                keyboardType="phone-pad"
                 onChangeText={(text) => {
-                  handleChange("password")(text);
-                  dispatch(setPassword(text)); // Update Redux on text change
+                  handleChange("mobileNumber")(text);
+                  dispatch(setMobileNumber(text)); // Update Redux on text change
                 }}
-                onBlur={handleBlur("password")}
-                value={values.password}
+                onBlur={handleBlur("mobileNumber")}
+                value={values.mobileNumber}
               />
-              {touched.password && errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
+              {touched.mobileNumber && errors.mobileNumber && (
+                <Text style={styles.errorText}>{errors.mobileNumber}</Text>
               )}
             </View>
 
@@ -103,7 +100,6 @@ const styles = StyleSheet.create({
     top: verticalScale(42),
     flexDirection: "row",
     alignItems: "center",
-  
   },
   backButton: {
     marginLeft: moderateScale(17),
@@ -146,7 +142,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   buttonText: {
-    fontFamily:'Poppins-Medium',
-      fontSize: scale(14),
-    },
+    fontFamily: "Poppins-Medium",
+    fontSize: scale(14),
+  },
 });

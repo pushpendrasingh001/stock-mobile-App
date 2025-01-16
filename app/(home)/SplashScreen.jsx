@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View,StyleSheet, ActivityIndicator } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { router } from "expo-router";
+
 const SplashScreen = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux';
-import { setGender } from '../../features/signup/signupSlice';
+import { setGender } from '../../features/additionalInformation/AddInfo';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import IconSVG from '../../assets/svg'; // Adjust the path to your SVG
 import { useRouter } from 'expo-router';
@@ -17,7 +17,7 @@ const validationSchema = Yup.object().shape({
 const CreateAccount = () => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const gender = useSelector((state) => state.signup.gender);
+  const gender = useSelector((state) => state.addInfo.gender);
 
   return (
     <View style={styles.parentContainer}>
@@ -25,7 +25,7 @@ const CreateAccount = () => {
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {
-            router.push('/(home)/Signup_2');
+            router.push('/(home)/SignupMobile');
           }}>
           <IconSVG name="backbutton" width={32} height={32} style={styles.button} />
         </TouchableOpacity>
@@ -39,7 +39,7 @@ const CreateAccount = () => {
         onSubmit={(values) => {
           dispatch(setGender(values.gender)); // Update Redux state
           console.log(values); // Debug
-          router.push('/(home)/Signup_4'); // Navigate to the next page
+          router.push('/(home)/SignupName'); // Navigate to the next page
         }}>
         {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
           <View style={styles.inputContainer}>

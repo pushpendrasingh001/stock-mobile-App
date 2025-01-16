@@ -4,13 +4,26 @@ import { useSelector } from "react-redux";
 
 const Output = () => {
   // Access the state from the Redux store
-  const { email, password, gender, name, sendNews, shareData } = useSelector(
+  const { email,name,mobileNumber } = useSelector(
     (state) => state.signup
+  );
+  const { otp,loginEmail } = useSelector(
+    (state) => state.login
+  );
+  const {  gender, sendNews, shareData } = useSelector(
+    (state) => state.addInfo
   );
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Profile Details</Text>
+      <Text  style={{color:'green' ,fontSize:25 ,textAlign:'center', padding:10}}>Login</Text>
+      <Text style={styles.detail}>
+        <Text style={styles.label}>LoginEmail: </Text>
+        {loginEmail}
+      </Text>
+    
+      <Text  style={{color:'green' ,fontSize:25 ,textAlign:'center', padding:10}}>Signup</Text>
       <Text style={styles.detail}>
         <Text style={styles.label}>Name: </Text>
         {name}
@@ -19,14 +32,17 @@ const Output = () => {
         <Text style={styles.label}>Email: </Text>
         {email}
       </Text>
+    
       <Text style={styles.detail}>
-        <Text style={styles.label}>Password: </Text>
-        {password}
+        <Text style={styles.label}>Mobile NUmber: </Text>
+        {mobileNumber}
       </Text>
+      <Text  style={{color:'green' ,fontSize:25 ,textAlign:'center', padding:10}}>Additonal detail</Text>
       <Text style={styles.detail}>
         <Text style={styles.label}>Gender: </Text>
         {gender}
       </Text>
+   
       <Text style={styles.detail}>
         <Text style={styles.label}>Share Data: </Text>
         {shareData ? "Yes" : "No"}

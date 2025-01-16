@@ -4,21 +4,41 @@ import { useRouter } from "expo-router";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+import { useMutation } from "@tanstack/react-query";
 import IconSVG from "../../assets/svg";
-import { useDispatch, useSelector } from "react-redux";
-import { setEmail } from '../../features/signup/signupSlice';
+import { useDispatch } from "react-redux";
+import { setLoginEmail } from "../../features/login/LoginSlice";
+import { setEmail } from "../../features/signup/signupSlice";
+import api from "../../services/api"; // Import Axios instance
 
 // Validation Schema
 const validationSchema = Yup.object().shape({
-  email: Yup.string()
+  loginEmail: Yup.string()
     .email("Please enter a valid email address")
     .required("Email is required"),
 });
 
+// API login function 
+const loginUser = async (email) => {
+  const response = await api.post('/auth/send-signup-otp', { email });
+  return response.data; // Axios automatically throws an error for non-2xx responses
+};
+
 const CreateAccount = () => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const email = useSelector((state) => state.signup.email);
+
+  // React Query mutation
+  const mutation = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (data) => {
+      console.log('Login successful:', data);
+      router.replace("/(home)/SignupOtpPage");
+    },
+    onError: (error) => {
+      console.error('Login failed:', error.message);
+    },
+  });
 
   return (
     <View style={styles.parentContainer}>
@@ -32,12 +52,12 @@ const CreateAccount = () => {
 
       {/* Formik Form */}
       <Formik
-        initialValues={{ email }}
+        initialValues={{ loginEmail: '' }}
         validationSchema={validationSchema}
         onSubmit={(values) => {
-          dispatch(setEmail(values.email)); 
-          console.log(values);
-          router.replace("/(home)/Signup_2");
+          dispatch(setLoginEmail(values.loginEmail));
+          dispatch(setEmail(values.loginEmail)); // Save email to signup slice
+          mutation.mutate(values.loginEmail);
         }}
       >
         {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
@@ -49,16 +69,34 @@ const CreateAccount = () => {
               placeholder="Enter your email"
               placeholderTextColor="#333"
               keyboardType="email-address"
-              onChangeText={handleChange("email")}
-              value={values.email}
+              onChangeText={handleChange("loginEmail")}
+              onBlur={handleBlur("loginEmail")}
+              value={values.loginEmail}
+              editable={!mutation.isPending}
             />
-            {touched.email && errors.email && (
-              <Text style={styles.errorText}>{errors.email}</Text>
+            {touched.loginEmail && errors.loginEmail && (
+              <Text style={styles.errorText}>{errors.loginEmail}</Text>
+            )}
+
+            {/* Error message from API */}
+            {mutation.isError && (
+              <Text style={styles.errorText}>
+                {mutation.error?.message || 'An error occurred during login'}
+              </Text>
             )}
 
             {/* Submit Button */}
-            <TouchableOpacity onPress={handleSubmit} style={styles.nextButton}>
-              <Text style={styles.buttonText}>Next</Text>
+            <TouchableOpacity 
+              onPress={handleSubmit} 
+              style={[
+                styles.nextButton,
+                mutation.isPending && styles.buttonDisabled
+              ]}
+              disabled={mutation.isPending}
+            >
+              <Text style={styles.buttonText}>
+                {mutation.isPending ? 'Sending...' : 'Send OTP'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -84,7 +122,6 @@ const styles = StyleSheet.create({
     top: verticalScale(42),
     flexDirection: "row",
     alignItems: "center",
-  
   },
   backButton: {
     marginLeft: moderateScale(17),
@@ -103,7 +140,7 @@ const styles = StyleSheet.create({
   textInput: {
     height: verticalScale(48),
     backgroundColor: "#777777",
-     borderRadius: scale(10),
+    borderRadius: scale(10),
     fontSize: scale(14),
     fontFamily: "Poppins-Regular",
     paddingHorizontal: moderateScale(12),
@@ -127,9 +164,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   buttonText: {
-  fontFamily:'Poppins-Medium',
+    fontFamily: "Poppins-Medium",
     fontSize: scale(14),
+    color: "#fff",
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
 });
-
-

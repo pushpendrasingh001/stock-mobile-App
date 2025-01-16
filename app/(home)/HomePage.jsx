@@ -22,7 +22,9 @@ const HomePage = () => {
 
         {/* Sign Up Button */}
         <View style={styles.signupContainer}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button}  onPress={()=>{
+router.replace("/(home)/SignupMobile")
+          }}>
             <Text style={styles.buttonTextsignup}>Sign up free</Text>
           </TouchableOpacity>
         </View>
@@ -44,7 +46,7 @@ const HomePage = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Continue with Facebook */}
+        Continue with Facebook
         <View style={styles.facebookContainer}>
           <TouchableOpacity style={styles.button}>
             <View style={styles.innerContainer}>
@@ -79,8 +81,8 @@ const HomePage = () => {
 
         {/* Log in */}
         <View style={styles.loginContainer}>
-          <TouchableOpacity style={styles.button} onPress={()=>{
-router.replace("/(home)/Signup_1")
+          <TouchableOpacity style={styles.button}  onPress={()=>{
+router.replace("/(home)/LoginEmail")
           }}>
             <Text style={styles.buttonText}>Log in</Text>
           </TouchableOpacity>

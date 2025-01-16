@@ -1,121 +1,4 @@
-// import React from "react";
-// import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from "react-native";
-// import { scale, verticalScale } from "react-native-size-matters";
-// import IconSVG from "../../assets/svg";
-
-
-
-// const StockDetail = () => {
-//   return (
-//     <ScrollView style={styles.parentContainer}>
-//       {/* Header Section */}
-//       <View style={styles.headerContainer}>
-//         <View>
-//           <TouchableOpacity>
-//             <IconSVG name="profile" width={24} height={24} style={{ marginLeft: scale(10) }} />
-//           </TouchableOpacity>
-//         </View>
-//         <View>
-//           <TouchableOpacity>
-//             <IconSVG name="add" width={28} height={28} style={{ marginRight: scale(10) }} />
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-
-//       {/* Image Section */}
-//       <View style={styles.imageContainer}>
-//         <Image source={require("./../../assets/images/zomatologo.png")} style={styles.image} />
-//       </View>
-
-//       {/* Title Section */}
-//       <View style={styles.titleContainer}>
-//         <Text style={styles.title}>
-//           Zomato CEO Deepinder Goyal’s Chief of Staff job listing sparks debate on personal
-//           branding & leadership roles
-//         </Text>
-//         <Text style={styles.subTitle}>
-//           Zomato CEO Deepinder Goyal’s recent post about the unconventional way to hire a Chief of
-//           Staff (CoS) raised a furore of viewpoints and questions on social media.According to the
-//           job listing, the selected candidate would not receive a salary during the first year but
-//           would instead need to contribute Rs 20 lakh for the “opportunity” to work at Zomato. This
-//           amount would be donated to Feeding India, the company’s non-profit.
-//           Zomato CEO Deepinder Goyal’s recent post about the unconventional way to hire a Chief of
-//           Staff (CoS) raised a furore of viewpoints and questions on social media.According to the
-//           job listing, the selected candidate would not receive a salary during the first year but
-//           would instead need to contribute Rs 20 lakh for the “opportunity” to work at Zomato. This
-//           amount would be donated to Feeding India, the company’s non-profit.Zomato CEO Deepinder Goyal’s recent post about the unconventional way to hire a Chief of
-//           Staff (CoS) raised a furore of viewpoints and questions on social media.According to the
-//           job listing, the selected candidate would not receive a salary during the first year but
-//           would instead need to contribute Rs 20 lakh for the “opportunity” to work at Zomato. This
-//           amount would be donated to Feeding India, the company’s non-profit.Zomato CEO Deepinder Goyal’s recent post about the unconventional way to hire a Chief of
-//           Staff (CoS) raised a furore of viewpoints and questions on social media.According to the
-//           job listing, the selected candidate would not receive a salary during the first year but
-//           would instead need to contribute Rs 20 lakh for the “opportunity” to work at Zomato. This
-//           amount would be donated to Feeding India, the company’s non-profit.Zomato CEO Deepinder Goyal’s recent post about the unconventional way to hire a Chief of
-//           Staff (CoS) raised a furore of viewpoints and questions on social media.According to the
-//           job listing, the selected candidate would not receive a salary during the first year but
-//           would instead need to contribute Rs 20 lakh for the “opportunity” to work at Zomato. This
-//           amount would be donated to Feeding India, the company’s non-profit.
-//         </Text>
-//       </View>
-//     </ScrollView>
-//   );
-// };
-
-// export default StockDetail;
-
-// const styles = StyleSheet.create({
-//   parentContainer: {
-//     flex: 1,
-//     backgroundColor: "#121212",
-//   },
-//   headerContainer: {
-//     width: "100%",
-//     height: verticalScale(55),
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-  
-//     paddingHorizontal: scale(10),
-//     top: verticalScale(20),
-//   },
-//   iconText: {
-//     color: "white",
-//     fontSize: scale(16),
-//   },
-//   imageContainer: {
-//     width: scale(350),
-//     height: verticalScale(230),
-//     marginBottom: verticalScale(10),
-//     top: verticalScale(20),
-//   },
-//   image: {
-//     width: scale(350),
-//     height: verticalScale(230),
-//   },
-//   titleContainer: {
-//      height:'100%',
-//     width: scale(350),
-//     backgroundColor: "white",
-//     padding: scale(10), 
-//     borderTopLeftRadius: 10,
-//     borderTopRightRadius: 10,
-//     marginBottom: verticalScale(10),
-//   },
-//   title: {
-//     fontSize: scale(14),
-//     fontFamily: "Poppins-SemiBold",
-//     marginBottom: verticalScale(5),
-//     color: "#333",
-//   },
-//   subTitle: {
-//     fontFamily: "Poppins-Medium",
-//     fontSize: scale(12),
-//     color: "#555",
-//     lineHeight: verticalScale(18),
-//   },
-// });
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -124,72 +7,163 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import IconSVG from '../../assets/svg';
 import { router } from "expo-router";
+import { useInfiniteQuery } from '@tanstack/react-query';
 
-const stocks = [
-  { id: 1, name: "Zomato", image: require("./../../assets/images/zomatologo.png") },
-  { id: 2, name: "Billie Eilish", image: require("./../../assets/images/zomatologo.png") },
-  { id: 3, name: "Kanye West", image: require("./../../assets/images/zomatologo.png") },
-  { id: 4, name: "Ariana Grande", image: require("./../../assets/images/zomatologo.png") },
-  { id: 5, name: "Lana Del Rey", image: require("./../../assets/images/zomatologo.png") },
-  { id: 6, name: "BTS", image: require("./../../assets/images/zomatologo.png") },
-  { id: 7, name: "Drake", image: require("./../../assets/images/zomatologo.png") },
-  { id: 8, name: "Harry Styles", image: require("./../../assets/images/zomatologo.png") },
-  { id: 9, name: "One Direction", image: require("./../../assets/images/zomatologo.png") },
-  { id: 10, name: "Rihanna", image: require("./../../assets/images/zomatologo.png") },
-  { id: 11, name: "Ed Sheeran", image: require("./../../assets/images/zomatologo.png") },
-  { id: 12, name: "The Weeknd", image: require("./../../assets/images/zomatologo.png") },
-  { id: 13, name: "Dua Lipa", image: require("./../../assets/images/zomatologo.png") },
-];
+const fetchStocks = async ({ pageParam = 1 }) => {
+  try {
+    const response = await fetch(
+      `https://eb88-122-176-44-176.ngrok-free.app/stocks?page=${pageParam}&pageSize=98`
+    );
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    // Add validation for expected data structure
+    if (!data || !Array.isArray(data.data)) {
+      throw new Error('Invalid data format received');
+    }
+    return data;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
+};
 
 const CreateAccount = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStocks, setSelectedStocks] = useState([]);
+  const allPagesLoaded = useRef(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Filter stocks
-  const filteredStocks = stocks.filter((stock) =>
-    stock.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    status,
+    error,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['stocks'],
+    queryFn: fetchStocks,
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage || !lastPage.data || lastPage.data.length === 0) {
+        allPagesLoaded.current = true;
+        return undefined;
+      }
+      return allPages.length + 1;
+    },
+    initialPageParam: 1,
+    retry: 3, // Add retry logic
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
-  // Handle stock selection
-  const handleStockSelection = (stock) => {
+  // Get all stocks from all loaded pages with error handling
+  const allStocks = React.useMemo(() => {
+    try {
+      return data?.pages?.flatMap(page => page?.data || []) ?? [];
+    } catch (error) {
+      console.error('Error processing stocks data:', error);
+      return [];
+    }
+  }, [data]);
+
+  // Filter stocks based on search query with error handling
+  const filteredStocks = React.useMemo(() => {
+    try {
+      if (!searchQuery.trim()) return allStocks;
+      
+      const normalizedSearch = searchQuery.toLowerCase().trim();
+      return allStocks.filter(stock => 
+        stock?.name?.toLowerCase().includes(normalizedSearch)
+      );
+    } catch (error) {
+      console.error('Error filtering stocks:', error);
+      return [];
+    }
+  }, [allStocks, searchQuery]);
+
+  // Debounced search handler
+  const handleSearch = (text) => {
+    setIsSearching(true);
+    setSearchQuery(text);
+    
+    // Reset searching state after a delay
+    setTimeout(() => {
+      setIsSearching(false);
+    }, 500);
+  };
+
+  // Modified scroll handler with error handling
+  const handleScroll = useCallback((event) => {
+    try {
+      if (searchQuery || isSearching) return;
+      
+      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+      const paddingToBottom = 20;
+      const isCloseToBottom = 
+        layoutMeasurement.height + contentOffset.y >= 
+        contentSize.height - paddingToBottom;
+
+      if (isCloseToBottom && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    } catch (error) {
+      console.error('Error handling scroll:', error);
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, searchQuery, isSearching]);
+
+  const handleStockSelection = useCallback((stock) => {
+    if (!stock?.id) return; // Add validation
+
     setSelectedStocks(prevSelected => {
-      // If already selected, remove
       if (prevSelected.some(s => s.id === stock.id)) {
         return prevSelected.filter(s => s.id !== stock.id);
       }
       
-      // If not already selected and less than 3 selected, add
       if (prevSelected.length < 3) {
         return [...prevSelected, stock];
       }
       
-      // If 3 already selected, replace the first one
       return [...prevSelected.slice(1), stock];
     });
-  };
+  }, []);
 
-  // Check if a stock is selected
-  const isSelected = (stockId) => {
+  const isSelected = useCallback((stockId) => {
     return selectedStocks.some(stock => stock.id === stockId);
-  };
+  }, [selectedStocks]);
+
+  if (status === 'error') {
+    return (
+      <View style={[styles.parentContainer, styles.centerContent]}>
+        <Text style={styles.errorText}>
+          {error?.message || 'An error occurred while loading stocks'}
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.parentContainer}>
-      {/* Header Section */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => {
-          router.push('/(home)/Signup_4');
-        }}>
+        <TouchableOpacity 
+          onPress={() => router.push('/(home)/SignupName')}
+          style={styles.backButtonContainer}
+        >
           <IconSVG name="backbutton" width={32} height={32} style={styles.backButton} />
         </TouchableOpacity>
         <Text style={styles.text}>Choose 1 or more stocks you like</Text>
       </View>
 
-      {/* Input Section */}
       <View style={styles.inputContainer}>
         <View style={styles.textInputWrapper}>
           <IconSVG name="search" width={20} height={20} style={styles.searchIcon} />
@@ -197,14 +171,17 @@ const CreateAccount = () => {
             style={styles.textInput}
             placeholder="Search..."
             placeholderTextColor="#aaa"
-            onChangeText={(text) => setSearchQuery(text)}
+            onChangeText={handleSearch}
             value={searchQuery}
           />
         </View>
       </View>
 
-      {/* Scrollable Cards */}
-      <ScrollView style={styles.scrollableArea}>
+      <ScrollView 
+        style={styles.scrollableArea}
+        onScroll={handleScroll}
+        scrollEventThrottle={400}
+      >
         <View style={styles.grid}>
           {filteredStocks.map((stock) => (
             <TouchableOpacity 
@@ -212,19 +189,28 @@ const CreateAccount = () => {
               style={[styles.card, isSelected(stock.id) && styles.selectedCard]}
               onPress={() => handleStockSelection(stock)}
             >
-              <Image source={stock.image} style={styles.image} />
-              <Text style={styles.name}>{stock.name}</Text>
+              <Image 
+                source={{ uri: 'https://via.placeholder.com/88x90' }} 
+                style={styles.image}
+                defaultSource={require("./../../assets/images/zomatologo.png")}
+              />
+              <Text style={styles.name}>{stock.name || 'Unknown Stock'}</Text>
               {isSelected(stock.id) && (
                 <View style={styles.tickMark}>
-                  <Text style={styles.tickMarkText}>✓</Text> {/* Ensuring the checkmark is wrapped in <Text> */}
+                  <Text style={styles.tickMarkText}>✓</Text>
                 </View>
               )}
             </TouchableOpacity>
           ))}
         </View>
+        {isFetchingNextPage && (
+          <ActivityIndicator size="large" color="#1ED760" style={styles.loader} />
+        )}
+        {filteredStocks.length === 0 && !isLoading && !isSearching && (
+          <Text style={styles.noResultsText}>No stocks found</Text>
+        )}
       </ScrollView>
 
-      {/* Continue Button */}
       <TouchableOpacity
         style={[
           styles.continueButton,
@@ -244,8 +230,35 @@ const CreateAccount = () => {
 };
 
 export default CreateAccount;
-
 const styles = StyleSheet.create({
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#ff0000',
+    fontSize: scale(14),
+    marginBottom: verticalScale(10),
+  },
+  retryButton: {
+    backgroundColor: '#1ED760',
+    padding: moderateScale(10),
+    borderRadius: scale(5),
+  },
+  retryText: {
+    color: 'white',
+    fontSize: scale(14),
+  },
+  loader: {
+    marginVertical: verticalScale(20),
+  },
+  noResultsText: {
+    color: '#fff',
+    fontSize: scale(14),
+    textAlign: 'center',
+    marginTop: verticalScale(20),
+  },
   parentContainer: {
     flex: 1,
     backgroundColor: "#121212",

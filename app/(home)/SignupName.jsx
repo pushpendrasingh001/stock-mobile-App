@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-native';
-import React from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Platform } from 'react-native';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import { CheckBox } from "@rneui/themed";
@@ -7,48 +7,105 @@ import IconSVG from '../../assets/svg';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { setName, toggleSendNews, toggleShareData } from '../../features/signup/signupSlice'; // Adjust the path
+import { toggleSendNews, toggleShareData } from '../../features/additionalInformation/AddInfo';
+import { setName } from '../../features/signup/signupSlice';
+import axiosInstance from '../../services/api';
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().required('Name is required').min(3),
+  name: Yup.string()
+    .required('Name is required')
+    .min(3, 'Name must be at least 3 characters')
+    .trim(),
 });
 
 const CreateAccount = () => {
   const router = useRouter();
   const dispatch = useDispatch();
- 
-  const { sendNews, shareData, name } = useSelector((state) => state.signup);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (values) => {
+  const { sendNews, shareData } = useSelector((state) => state.addInfo);
+  const { email, mobile } = useSelector((state) => state.signup);
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    setSubmitting(true);
+
+    try {
+      // Validate required fields
+      if (!email || !mobile) {
+        Alert.alert('Error', 'Email and mobile number are required');
+        return;
+      }
+
+      if (!values.name || values.name.trim().length < 3) {
+        Alert.alert('Error', 'Please enter a valid name (minimum 3 characters)');
+        return;
+      }
   
-    const submissionData = {
-      ...values,
-      sendNews: sendNews,
-      shareData: shareData,
-    };
+      // Prepare submission data
+      const submissionData = {
+        name: values.name.trim(),
+        email: email.trim(),
+        mobile: mobile.trim(),
+        preferences: {
+          sendNews,
+          shareData,
+        },
+        deviceDetails: {
+          deviceId: '12345ABCDE',
+          platform: Platform.OS,
+          version: Platform.Version,
+        }
+      };
 
-    console.log('Form Submission Data:', submissionData);
-    
-    router.push('/(home)/ChooseArtist');
+      console.log('Submitting data:', submissionData);
+  
+      // Make API call
+      const response = await axiosInstance.post('/auth/create-user', submissionData);
+  
+      if (response?.data?.success) {
+        dispatch(setName(values.name.trim()));
+        router.push('/(home)/ChooseArtist');
+      } else {
+        throw new Error(response?.data?.message || 'Failed to create user');
+      }
+  
+    } catch (error) {
+      console.error('Error creating user:', error);
+      
+      let errorMessage = 'Failed to create user. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.request) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+  
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsLoading(false);
+      setSubmitting(false);
+    }
   };
 
+  // Rest of your component code remains the same until the button
   return (
     <View style={styles.parentContainer}>
       {/* Header Section */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(home)/Signup_3')}>
+        <TouchableOpacity onPress={() => router.push('/(home)/SignupGender')}>
           <IconSVG name="backbutton" width={32} height={32} style={styles.backButton} />
         </TouchableOpacity>
         <Text style={styles.text}>Create Account</Text>
       </View>
 
-      {/* Formik Form */}
       <Formik
-        initialValues={{ name: name }} // Initialize with name from Redux
+        initialValues={{ name: '' }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
+        {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting }) => (
           <View>
             {/* Input Section */}
             <View style={styles.inputContainer}>
@@ -58,10 +115,7 @@ const CreateAccount = () => {
                 placeholder="Name for your Spotify profile"
                 placeholderTextColor="#333"
                 value={values.name}
-                onChangeText={(text) => {
-                  handleChange('name')(text);
-                  dispatch(setName(text)); // Update Redux state
-                }}
+                onChangeText={handleChange('name')}
                 onBlur={handleBlur('name')}
                 keyboardType="default"
               />
@@ -75,17 +129,17 @@ const CreateAccount = () => {
 
             {/* Terms and Conditions */}
             <View style={styles.termContainer}>
-        <Text style={styles.termText}>
-          By tapping on “Create account”, you agree to the Spotify Terms of Use.{"\n"}
-          <TouchableOpacity>
-            <Text style={styles.highlightText}>Terms of Use</Text>
-          </TouchableOpacity>
-          {"\n"}To learn more about how Spotify collects, uses, shares, and protects your personal data, please see the Spotify Privacy Policy.{"\n"}
-          <TouchableOpacity>
-            <Text style={styles.highlightText}>Privacy Policy</Text>
-          </TouchableOpacity>
-        </Text>
-      </View>
+              <Text style={styles.termText}>
+                By tapping on "Create account", you agree to the Spotify Terms of Use.{"\n"}
+                <TouchableOpacity>
+                  <Text style={styles.highlightText}>Terms of Use</Text>
+                </TouchableOpacity>
+                {"\n"}To learn more about how Spotify collects, uses, shares, and protects your personal data, please see the Spotify Privacy Policy.{"\n"}
+                <TouchableOpacity>
+                  <Text style={styles.highlightText}>Privacy Policy</Text>
+                </TouchableOpacity>
+              </Text>
+            </View>
 
             {/* Checkboxes */}
             <View style={styles.checkboxContainer}>
@@ -95,7 +149,7 @@ const CreateAccount = () => {
                 </Text>
                 <CheckBox
                   checked={sendNews}
-                  onPress={() => dispatch(toggleSendNews())} // Toggle Redux state
+                  onPress={() => dispatch(toggleSendNews())}
                   checkedIcon={<IconSVG name="checked" width={25} height={25} />}
                   uncheckedIcon={<IconSVG name="unchecked" width={25} height={25} />}
                   containerStyle={styles.checkboxContainerStyle}
@@ -110,7 +164,7 @@ const CreateAccount = () => {
                 </Text>
                 <CheckBox
                   checked={shareData}
-                  onPress={() => dispatch(toggleShareData())} // Toggle Redux state
+                  onPress={() => dispatch(toggleShareData())}
                   checkedIcon={<IconSVG name="checked" width={25} height={25} />}
                   uncheckedIcon={<IconSVG name="unchecked" width={25} height={25} />}
                   containerStyle={styles.checkboxContainerStyle}
@@ -119,20 +173,24 @@ const CreateAccount = () => {
             </View>
 
             <TouchableOpacity
-              style={styles.nextButton}
+              style={[
+                styles.nextButton,
+                (isSubmitting || isLoading) && styles.disabledButton
+              ]}
               onPress={handleSubmit}
+              disabled={isSubmitting || isLoading}
             >
-              <Text style={styles.buttonText}>Create an account</Text>
+              <Text style={[styles.buttonText, { color: '#000' }]}>
+                {(isSubmitting || isLoading) ? 'Creating Account...' : 'Create an account'}
+              </Text>
             </TouchableOpacity>
+
           </View>
         )}
       </Formik>
     </View>
   );
 };
-
-
-
 
 export default CreateAccount;
 
@@ -152,6 +210,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+
+disabledButton: {
+  opacity: 0.7,
+},
   hr: {
     borderBottomWidth: 1,
     borderBottomColor: '#888',
@@ -235,5 +297,9 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: 'Poppins-Medium',
     fontSize: scale(12),
+  },
+  disabledButton: {
+    opacity: 0.7,
+    backgroundColor: '#888',
   },
 });
