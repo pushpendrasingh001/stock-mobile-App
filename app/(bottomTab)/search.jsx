@@ -17,7 +17,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 const fetchStocks = async ({ pageParam = 1 }) => {
   try {
     const response = await fetch(
-      `https://eb88-122-176-44-176.ngrok-free.app/stocks?page=${pageParam}&pageSize=98`
+      `https://f10b-122-176-44-176.ngrok-free.app/stocks?page=${pageParam}&pageSize=98`
     );
     if (!response.ok) {
       throw new Error('Network response was not ok');

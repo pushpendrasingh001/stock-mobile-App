@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -10,46 +10,25 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
-import IconSVG from "../../assets/svg";
+import IconSVG from '../../assets/svg';
 import { router } from "expo-router";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import apiClient from "../../services/api";
+import { useInfiniteQuery } from '@tanstack/react-query';
 
-const fetchStocks = async ({ pageParam = 1 }) => {
+const fetchStocks = async ({ pageParam = 1, searchQuery = "" }) => {
   try {
-    const response = await apiClient.get("/stocks", {
-      params: {
-        page: pageParam,
-        pageSize: 98,
-      },
-    });
-    console.log("Fetched stocks:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error(
-      "Error fetching stocks:",
-      error?.response?.data || error.message
+    const response = await fetch(
+      `https://f10b-122-176-44-176.ngrok-free.app/stocks/search?search=${encodeURIComponent(searchQuery)}&sortBy=name&sortOrder=asc&page=${pageParam}`
     );
-    throw error;
-  }
-};
-
-const searchStocks = async (searchQuery) => {
-  try {
-    const response = await apiClient.get("/stocks/search", {
-      params: {
-        search: searchQuery,
-        sortBy: "name",
-        sortOrder: "asc",
-      },
-    });
-    console.log("Search results:", response.data);
-    return response.data;
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    if (!data || !Array.isArray(data.data)) {
+      throw new Error('Invalid data format received');
+    }
+    return data;
   } catch (error) {
-    console.error(
-      "Error searching stocks:",
-      error?.response?.data || error.message
-    );
+    console.error('Fetch error:', error);
     throw error;
   }
 };
@@ -58,99 +37,96 @@ const CreateAccount = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStocks, setSelectedStocks] = useState([]);
   const allPagesLoaded = useRef(false);
-  const searchDebounceTimeout = useRef(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const {
-    data: infiniteData,
+    data,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isLoading: isLoadingInfinite,
+    isLoading,
     status,
-    error: infiniteError,
-    refetch,
+    error,
+    refetch
   } = useInfiniteQuery({
-    queryKey: ["stocks"],
-    queryFn: fetchStocks,
+    queryKey: ['stocks', searchQuery],
+    queryFn: ({ pageParam = 1 }) => fetchStocks({ pageParam, searchQuery }),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage || !lastPage.data || lastPage.data.length === 0) {
         allPagesLoaded.current = true;
         return undefined;
       }
       return allPages.length + 1;
-    },
-    initialPageParam: 1,
-    enabled: !searchQuery,
-  });
-
-  const {
-    data: searchData,
-    isLoading: isLoadingSearch,
-    error: searchError,
-  } = useQuery({
-    queryKey: ["stockSearch", searchQuery],
-    queryFn: () => searchStocks(searchQuery),
-    enabled: searchQuery.length > 0,
-    staleTime: 30000,
-  });
-
-  const displayedStocks = useMemo(() => {
-    if (searchQuery) {
-      return searchData?.data || [];
     }
-    return infiniteData?.pages?.flatMap((page) => page?.data || []) ?? [];
-  }, [infiniteData, searchData, searchQuery]);
+  });
+
+  const allStocks = React.useMemo(() => {
+    try {
+      return data?.pages?.flatMap(page => page?.data || []) ?? [];
+    } catch (error) {
+      console.error('Error processing stocks data:', error);
+      return [];
+    }
+  }, [data]);
+
+  const filteredStocks = React.useMemo(() => {
+    if (!searchQuery.trim()) return allStocks;
+
+    const normalizedSearch = searchQuery.toLowerCase().trim();
+    return allStocks.filter(stock =>
+      stock.name.toLowerCase().includes(normalizedSearch)
+    );
+  }, [allStocks, searchQuery]);
 
   const handleSearch = (text) => {
+    setIsSearching(true);
     setSearchQuery(text);
-    if (searchDebounceTimeout.current) {
-      clearTimeout(searchDebounceTimeout.current);
-    }
-    searchDebounceTimeout.current = setTimeout(() => {
-      setSearchQuery(text);
-    }, 300);
+    refetch();
+    setTimeout(() => {
+      setIsSearching(false);
+    }, 500);
   };
 
-  const handleScroll = useCallback(
-    (event) => {
-      if (searchQuery) return;
-      const { layoutMeasurement, contentOffset, contentSize } =
-        event.nativeEvent;
-      const paddingToBottom = 20;
-      const isCloseToBottom =
-        layoutMeasurement.height + contentOffset.y >=
-        contentSize.height - paddingToBottom;
-      if (isCloseToBottom && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    },
-    [fetchNextPage, hasNextPage, isFetchingNextPage, searchQuery]
-  );
+  const handleScroll = useCallback((event) => {
+    if (searchQuery || isSearching) return;
+
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToBottom = 20;
+    const isCloseToBottom =
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom;
+
+    if (isCloseToBottom && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, searchQuery, isSearching]);
 
   const handleStockSelection = useCallback((stock) => {
-    setSelectedStocks((prevSelected) => {
-      if (prevSelected.some((s) => s.id === stock.id)) {
-        return prevSelected.filter((s) => s.id !== stock.id);
+    if (!stock?.id) return;
+
+    setSelectedStocks(prevSelected => {
+      if (prevSelected.some(s => s.id === stock.id)) {
+        return prevSelected.filter(s => s.id !== stock.id);
       }
+
       if (prevSelected.length < 3) {
         return [...prevSelected, stock];
       }
+
       return [...prevSelected.slice(1), stock];
     });
   }, []);
 
-  const isSelected = useCallback(
-    (stockId) => selectedStocks.some((stock) => stock.id === stockId),
-    [selectedStocks]
-  );
+  const isSelected = useCallback((stockId) => {
+    return selectedStocks.some(stock => stock.id === stockId);
+  }, [selectedStocks]);
 
-  const isLoading = isLoadingInfinite || isLoadingSearch;
-  const error = infiniteError || searchError;
-
-  if (status === "error") {
+  if (status === 'error') {
     return (
       <View style={[styles.parentContainer, styles.centerContent]}>
-        <Text style={styles.errorText}>Error: {error.message}</Text>
+        <Text style={styles.errorText}>
+          {error?.message || 'An error occurred while loading stocks'}
+        </Text>
         <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
           <Text style={styles.retryText}>Retry</Text>
         </TouchableOpacity>
@@ -161,24 +137,18 @@ const CreateAccount = () => {
   return (
     <View style={styles.parentContainer}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(home)/SignupName")}>
-          <IconSVG
-            name="backbutton"
-            width={32}
-            height={32}
-            style={styles.backButton}
-          />
+        <TouchableOpacity 
+          onPress={() => router.push('/(home)/SignupName')}
+          style={styles.backButtonContainer}
+        >
+          <IconSVG name="backbutton" width={32} height={32} style={styles.backButton} />
         </TouchableOpacity>
         <Text style={styles.text}>Choose 1 or more stocks you like</Text>
       </View>
+
       <View style={styles.inputContainer}>
         <View style={styles.textInputWrapper}>
-          <IconSVG
-            name="search"
-            width={20}
-            height={20}
-            style={styles.searchIcon}
-          />
+          <IconSVG name="search" width={20} height={20} style={styles.searchIcon} />
           <TextInput
             style={styles.textInput}
             placeholder="Search..."
@@ -188,24 +158,25 @@ const CreateAccount = () => {
           />
         </View>
       </View>
-      <ScrollView
+
+      <ScrollView 
         style={styles.scrollableArea}
         onScroll={handleScroll}
         scrollEventThrottle={400}
       >
         <View style={styles.grid}>
-          {displayedStocks.map((stock) => (
-            <TouchableOpacity
-              key={stock.id}
+          {filteredStocks.map((stock) => (
+            <TouchableOpacity 
+              key={stock.id} 
               style={[styles.card, isSelected(stock.id) && styles.selectedCard]}
               onPress={() => handleStockSelection(stock)}
             >
-              <Image
-                source={{ uri: "https://via.placeholder.com/88x90" }}
+              <Image 
+                source={{ uri: 'https://via.placeholder.com/88x90' }} 
                 style={styles.image}
                 defaultSource={require("./../../assets/images/zomatologo.png")}
               />
-              <Text style={styles.name}>{stock.name}</Text>
+              <Text style={styles.name}>{stock.name || 'Unknown Stock'}</Text>
               {isSelected(stock.id) && (
                 <View style={styles.tickMark}>
                   <Text style={styles.tickMarkText}>✓</Text>
@@ -214,30 +185,18 @@ const CreateAccount = () => {
             </TouchableOpacity>
           ))}
         </View>
-        {isFetchingNextPage && !searchQuery && (
-          <ActivityIndicator
-            size="large"
-            color="#1ED760"
-            style={styles.loader}
-          />
+        {isFetchingNextPage && (
+          <ActivityIndicator size="large" color="#1ED760" style={styles.loader} />
         )}
-        {isLoading && (
-          <ActivityIndicator
-            size="large"
-            color="#1ED760"
-            style={styles.loader}
-          />
-        )}
-        {displayedStocks.length === 0 && !isLoading && (
+        {filteredStocks.length === 0 && !isLoading && !isSearching && (
           <Text style={styles.noResultsText}>No stocks found</Text>
         )}
       </ScrollView>
+
       <TouchableOpacity
         style={[
           styles.continueButton,
-          selectedStocks.length >= 1
-            ? styles.activeButton
-            : styles.inactiveButton,
+          selectedStocks.length >= 1 ? styles.activeButton : styles.inactiveButton,
         ]}
         onPress={() => {
           if (selectedStocks.length >= 1) {
@@ -257,30 +216,30 @@ export default CreateAccount;
 const styles = StyleSheet.create({
   centerContent: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorText: {
-    color: "#ff0000",
+    color: '#ff0000',
     fontSize: scale(14),
     marginBottom: verticalScale(10),
   },
   retryButton: {
-    backgroundColor: "#1ED760",
+    backgroundColor: '#1ED760',
     padding: moderateScale(10),
     borderRadius: scale(5),
   },
   retryText: {
-    color: "white",
+    color: 'white',
     fontSize: scale(14),
   },
   loader: {
     marginVertical: verticalScale(20),
   },
   noResultsText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: scale(14),
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: verticalScale(20),
   },
   parentContainer: {
@@ -326,7 +285,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
+    justifyContent: 'space-around',
     padding: 10,
   },
   card: {
@@ -336,7 +295,7 @@ const styles = StyleSheet.create({
     margin: 10,
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
+    position: 'relative',
   },
   selectedCard: {
     opacity: 0.7,
@@ -353,24 +312,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   tickMark: {
-    position: "absolute",
+    position: 'absolute',
     top: 5,
     right: 5,
-    backgroundColor: "green",
+    backgroundColor: 'green',
     borderRadius: 15,
     width: 20,
     height: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tickMarkText: {
-    color: "white",
-    fontWeight: "bold",
+    color: 'white',
+    fontWeight: 'bold',
   },
   continueButton: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 10,
-    left: "25%",
+    left: '25%',
     paddingHorizontal: moderateScale(20),
     width: scale(179),
     height: verticalScale(49),
@@ -382,7 +341,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1ED760",
   },
   inactiveButton: {
-    backgroundColor: "#535353",
+    backgroundColor: '#535353',
   },
   continueButtonText: {
     color: "white",

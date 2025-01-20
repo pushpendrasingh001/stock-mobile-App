@@ -9,15 +9,7 @@ import IconSVG from '../../assets/svg';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOTP } from '../../features/login/LoginSlice';
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
-
-// Axios Instance
-const api = axios.create({
-  baseURL: 'https://94f3-122-176-44-176.ngrok-free.app',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import api from '../../services/api'; // Import Axios instance
 
 // Validation Schema
 const validationSchema = Yup.object().shape({
@@ -28,17 +20,13 @@ const validationSchema = Yup.object().shape({
 
 // API verify OTP function
 const verifyOTP = async ({ email, otp }) => {
-  console.log('Verifying OTP with:', { email, otp }); // Debugging payload
   const response = await api.post('/auth/verify-signup-otp', { email, otp });
-  console.log('Verify Response:', response.data); // Debugging response
   return response.data;
 };
 
 // API resend OTP function
 const resendOTP = async (email) => {
-  console.log('Resending OTP to:', email); // Debugging payload
-  const response = await api.post('/auth/verify-signup-otp', { email });
-  console.log('Resend Response:', response.data); // Debugging response
+  const response = await api.post('/auth/send-signup-otp', { email });
   return response.data;
 };
 
@@ -58,13 +46,7 @@ const OTPScreen = () => {
       router.replace('/(home)/SignupMobile');
     },
     onError: (error) => {
-      if (error.response?.status === 500) {
-        console.error('Server Error: There is an issue with the server. Please try again later.');
-      } else if (error.response?.status === 400) {
-        console.error('Invalid OTP:', error.response.data.message || 'The OTP you entered is invalid.');
-      } else {
-        console.error('Verification failed:', error.response?.data?.message || error.message);
-      }
+      console.error('OTP verification failed:', error.response?.data?.message || error.message);
     },
   });
 
@@ -76,11 +58,7 @@ const OTPScreen = () => {
       setIsResendDisabled(true);
     },
     onError: (error) => {
-      if (error.response?.status === 500) {
-        console.error('Server Error: Unable to resend OTP. Please try again later.');
-      } else {
-        console.error('Failed to resend OTP:', error.response?.data?.message || error.message);
-      }
+      console.error('Failed to resend OTP:', error.response?.data?.message || error.message);
     },
   });
 
@@ -105,7 +83,7 @@ const OTPScreen = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Mask email function
+  // Function to mask email
   const maskEmail = (loginEmail) => {
     const [username, domain] = loginEmail.split('@');
     if (username.length <= 4) return loginEmail;
@@ -117,10 +95,10 @@ const OTPScreen = () => {
     <View style={styles.parentContainer}>
       {/* Header Section */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(home)/SignupEmail')}>
+        <TouchableOpacity onPress={() => router.push('/(home)/LoginEmail')}>
           <IconSVG name="backbutton" width={32} height={32} style={styles.backButton} />
         </TouchableOpacity>
-        <Text style={styles.text}>OTP Verification</Text>
+        <Text style={styles.text}>Login Page</Text>
       </View>
 
       {/* Formik Form */}
@@ -139,7 +117,7 @@ const OTPScreen = () => {
               Sent OTP on registered email: <Text style={styles.emailContent}>{maskEmail(email)}</Text>
             </Text>
 
-            <TouchableOpacity onPress={() => router.push('/(home)/SignupEmail')}>
+            <TouchableOpacity onPress={() => router.push('/(home)/LoginEmail')}>
               <Text style={styles.changeEmail}>Change Email ?</Text>
             </TouchableOpacity>
 
@@ -147,11 +125,17 @@ const OTPScreen = () => {
               handleTextChange={handleChange('otp')}
               inputCount={6}
               containerStyle={styles.otpContainer}
-              textInputStyle={[styles.otpInput, verifyMutation.isPending && styles.inputDisabled]}
+              textInputStyle={[
+                styles.otpInput,
+                verifyMutation.isPending && styles.inputDisabled,
+              ]}
               editable={!verifyMutation.isPending}
             />
 
-            {touched.otp && errors.otp && <Text style={styles.errorText}>{errors.otp}</Text>}
+            {touched.otp && errors.otp && (
+              <Text style={styles.errorText}>{errors.otp}</Text>
+            )}
+
             {verifyMutation.isError && (
               <Text style={styles.errorText}>
                 {verifyMutation.error.response?.data?.message || verifyMutation.error.message}
@@ -192,7 +176,6 @@ const OTPScreen = () => {
     </View>
   );
 };
-
 
 export default OTPScreen;
 const styles = StyleSheet.create({

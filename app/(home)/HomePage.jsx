@@ -23,7 +23,7 @@ const HomePage = () => {
         {/* Sign Up Button */}
         <View style={styles.signupContainer}>
           <TouchableOpacity style={styles.button}  onPress={()=>{
-router.replace("/(home)/SignupMobile")
+router.replace("/(home)/SignupEmail")
           }}>
             <Text style={styles.buttonTextsignup}>Sign up free</Text>
           </TouchableOpacity>

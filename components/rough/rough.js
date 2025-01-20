@@ -1,4 +1,3 @@
-
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -130,7 +129,7 @@ const CreateAccount = () => {
       } else if (error.response?.status === 400) {
         errorMessage = 'Invalid data provided. Please check your inputs and try again.';
       } else if (error.response?.status === 409) {
-        errorMessage = 'User  already exists with this email or mobile number.';
+        errorMessage = 'User already exists with this email or mobile number.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Request timed out. Please check your connection and try again.';
       } else if (error.message) {
@@ -149,6 +148,7 @@ const CreateAccount = () => {
     }
   };
 
+  // Rest of your component code remains the same until the button
   return (
     <View style={styles.parentContainer}>
       {/* Header Section */}
@@ -269,9 +269,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  disabledButton: {
-    opacity: 0.7,
-  },
+
+disabledButton: {
+  opacity: 0.7,
+},
   hr: {
     borderBottomWidth: 1,
     borderBottomColor: '#888',

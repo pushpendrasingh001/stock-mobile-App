@@ -33,7 +33,7 @@ const CreateAccount = () => {
     mutationFn: loginUser,
     onSuccess: (data) => {
       console.log('Login successful:', data);
-      router.replace("/(home)/SignupOtpPage");
+      router.replace("/(home)/SignupMobile");
     },
     onError: (error) => {
       console.error('Login failed:', error.message);
